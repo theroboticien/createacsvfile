@@ -1,10 +1,7 @@
 # This is a program to create a csv file
 # The aim of this program is to create a csv file to fill different Databases
 # All the data will be strings
-# we can make this better by selecting the type of data entered
-
 from python_random_strings import random_strings
-
 
 # Main program
 # In this part of the program we define how many data we want create
