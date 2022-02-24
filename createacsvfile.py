@@ -19,11 +19,6 @@ print(f'The number of line is : {nbr_line}')
 # Create a random word
 word = random_strings.random_lowercase(6)
 
-# Create the csv file
-# A CSV file is a Comma Separated Values file. All CSV files are plain text files,
-# can contain numbers and letters only,
-# and structure the data contained within them in a tabular, or table, form.
-
 # Open a file with the option to rewrite the file if exist and create file if does not exist
 f = open("data.csv", "w")
 
