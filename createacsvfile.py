@@ -35,7 +35,7 @@ def Fill_CSV(word):
             word = random_strings.random_lowercase(6)
             # Write to the word to the file
             f.write(f"{word}") if j == nbr_coloumn-1 else f.write(f"{word},")
-            f.write("\n")
+        f.write("\n")
     # Close the opened file
     f.close()
 
