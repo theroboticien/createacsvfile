@@ -3,6 +3,7 @@
 # All the data will be strings
 from python_random_strings import random_strings
 
+
 # Main program
 # In this part of the program we define how many data we want create
 # How many coloumn to fill
