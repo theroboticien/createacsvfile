@@ -4,11 +4,15 @@ The aim of this program is to create a csv file to fill different Databases
 On this version, all the data will be strings in this version
 
 Note :
+
+
 A CSV file is a Comma Separated Values file. All CSV files are plain text files,
 and can contain numbers and letters only,
 and structure the data contained within them in a tabular, or table, form.
 
 Author : Aymane
+
+
 Organisation : Qualité Logiciel Youtube Channel
 """
 from python_random_strings import random_strings
@@ -56,7 +60,7 @@ def createaCSVFile():
                 word = random_strings.random_lowercase(6)
                 # Write to the word to the file
                 f.write(f"{word}") if j == nbr_coloumn-1 else f.write(f"{word},")
-        f.write("\n")
+            f.write("\n")
         # Close the opened file
         f.close()
         tkinter.messagebox.showinfo("Congratulation","CSV File created")

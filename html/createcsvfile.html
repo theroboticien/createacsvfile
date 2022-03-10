@@ -27,12 +27,12 @@ On this version, all …" />
 <p>This is the version 1.2 of the createaCSVFile program
 The aim of this program is to create a csv file to fill different Databases
 On this version, all the data will be strings in this version</p>
-<p>Note :
-A CSV file is a Comma Separated Values file. All CSV files are plain text files,
+<p>Note :</p>
+<p>A CSV file is a Comma Separated Values file. All CSV files are plain text files,
 and can contain numbers and letters only,
 and structure the data contained within them in a tabular, or table, form.</p>
-<p>Author : Aymane
-Organisation : Qualité Logiciel Youtube Channel</p>
+<p>Author : Aymane</p>
+<p>Organisation : Qualité Logiciel Youtube Channel</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -43,11 +43,15 @@ The aim of this program is to create a csv file to fill different Databases
 On this version, all the data will be strings in this version
 
 Note :
+
+
 A CSV file is a Comma Separated Values file. All CSV files are plain text files,
 and can contain numbers and letters only,
 and structure the data contained within them in a tabular, or table, form.
 
 Author : Aymane
+
+
 Organisation : Qualité Logiciel Youtube Channel
 &#34;&#34;&#34;
 from python_random_strings import random_strings
@@ -95,7 +99,7 @@ def createaCSVFile():
                 word = random_strings.random_lowercase(6)
                 # Write to the word to the file
                 f.write(f&#34;{word}&#34;) if j == nbr_coloumn-1 else f.write(f&#34;{word},&#34;)
-        f.write(&#34;\n&#34;)
+            f.write(&#34;\n&#34;)
         # Close the opened file
         f.close()
         tkinter.messagebox.showinfo(&#34;Congratulation&#34;,&#34;CSV File created&#34;)
@@ -157,7 +161,7 @@ mainloop()</code></pre>
                 word = random_strings.random_lowercase(6)
                 # Write to the word to the file
                 f.write(f&#34;{word}&#34;) if j == nbr_coloumn-1 else f.write(f&#34;{word},&#34;)
-        f.write(&#34;\n&#34;)
+            f.write(&#34;\n&#34;)
         # Close the opened file
         f.close()
         tkinter.messagebox.showinfo(&#34;Congratulation&#34;,&#34;CSV File created&#34;)</code></pre>
