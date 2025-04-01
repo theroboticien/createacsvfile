@@ -15,7 +15,7 @@ Author : Aymane
 
 Organisation : Qualité Logiciel Youtube Channel
 """
-from python_random_strings import random_strings
+import random
 import tkinter.messagebox
 from tkinter import *
 from fillCsvDataFile import createaCSVFile 
