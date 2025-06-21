@@ -27,7 +27,7 @@ def random_date(start_date=datetime.date(2000, 1, 1), end_date=datetime.date(202
     days_between_dates = time_between_dates.days
     random_number_of_days = random.randrange(days_between_dates)
     random_day = start_date + datetime.timedelta(days=random_number_of_days)
-    return random_day.strftime("%Y-%m-%d") # Format as YYYY-MM-DD string
+    return random_day.strftime("%Y-%m-%d") # Format as INSEE-MM-DD string
 
 def random_name():
     """Generates a random common first name."""
@@ -35,7 +35,40 @@ def random_name():
     return random.choice(names)
 
 
-def createaCSVFile(nbr_line, nbr_coloumn, column_types, filename="data.csv"):
+def _validate_csv_params(nbr_line, nbr_coloumn, column_types):
+    """
+    Validates the input parameters for CSV file creation.
+    Raises TypeError or ValueError if validation fails.
+    """
+    if not isinstance(nbr_line, int) or not isinstance(nbr_coloumn, int):
+        raise TypeError("Number of lines and columns must be integers.")
+    if nbr_line <= 0 or nbr_coloumn <= 0:
+        raise ValueError("Number of lines and columns must be positive integers.")
+    if not isinstance(column_types, list) or len(column_types) != nbr_coloumn:
+        raise ValueError(f"Column types list must be a list of length {nbr_coloumn}.")
+
+def _generate_cell_data(col_type):
+    """
+    Generates a single data cell based on the specified column type.
+    """
+    if col_type == "random_lowercase":
+        return str(random_lowercase())
+    elif col_type == "random_integer":
+        return str(random_integer())
+    elif col_type == "random_float":
+        return str(random_float())
+    elif col_type == "random_boolean":
+        return str(random_boolean())
+    elif col_type == "random_date":
+        return str(random_date())
+    elif col_type == "random_name":
+        return str(random_name())
+    else:
+        # Default to random lowercase if type is unknown
+        return str(random_lowercase()) 
+
+
+def create_csv_file(nbr_line, nbr_coloumn, column_types, filename="data.csv"):
     """
     Creates a CSV file filled with data based on specified column types.
 
@@ -51,31 +84,14 @@ def createaCSVFile(nbr_line, nbr_coloumn, column_types, filename="data.csv"):
                     or if column_types length does not match nbr_coloumn.
         TypeError: If nbr_line, nbr_coloumn, or column_types are of incorrect types.
     """
-    if not isinstance(nbr_line, int) or not isinstance(nbr_coloumn, int):
-        raise TypeError("Number of lines and columns must be integers.")
-    if nbr_line <= 0 or nbr_coloumn <= 0:
-        raise ValueError("Number of lines and columns must be positive integers.")
-    if not isinstance(column_types, list) or len(column_types) != nbr_coloumn:
-        raise ValueError(f"Column types list must be a list of length {nbr_coloumn}.")
+    # Delegate validation to a helper function
+    _validate_csv_params(nbr_line, nbr_coloumn, column_types)
     
     with open(filename, "w") as f:
         for _ in range(nbr_line):
             row_data = []
             for i in range(nbr_coloumn):
                 col_type = column_types[i]
-                if col_type == "random_lowercase":
-                    row_data.append(str(random_lowercase()))
-                elif col_type == "random_integer":
-                    row_data.append(str(random_integer()))
-                elif col_type == "random_float":
-                    row_data.append(str(random_float()))
-                elif col_type == "random_boolean":
-                    row_data.append(str(random_boolean()))
-                elif col_type == "random_date":
-                    row_data.append(str(random_date()))
-                elif col_type == "random_name":
-                    row_data.append(str(random_name()))
-                else:
-                    # Default to random lowercase if type is unknown
-                    row_data.append(str(random_lowercase())) 
+                # Delegate cell data generation to a helper function
+                row_data.append(_generate_cell_data(col_type))
             f.write(",".join(row_data) + "\n")
