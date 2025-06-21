@@ -7,6 +7,12 @@ import random # Import random for generating unique temporary filenames
 from fillCsvDataFile import createaCSVFile 
 
 class CSVApp:
+    # Define constants for repeated strings
+    MSG_INPUT_REQUIRED_TITLE = "Input Required"
+    MSG_INPUT_INVALID_TITLE = "Input Error"
+    MSG_INPUT_INVALID_INT = "Invalid input. Please enter valid integers for rows and columns."
+
+
     def __init__(self, master):
         """
         Initializes the CSV File Creator application.
@@ -183,12 +189,12 @@ class CSVApp:
 
             if nbr_coloumn <= 0 or preview_nbr_line <= 0:
                 messagebox.showwarning(
-                    "Input Required", "Please enter positive integers for rows and columns to preview."
+                    self.MSG_INPUT_REQUIRED_TITLE, "Please enter positive integers for rows and columns to preview."
                 )
                 return
         except ValueError:
             messagebox.showwarning(
-                "Input Required", "Please enter valid integers for rows and columns to preview."
+                self.MSG_INPUT_REQUIRED_TITLE, self.MSG_INPUT_INVALID_INT
             )
             return
 
@@ -244,12 +250,12 @@ class CSVApp:
             nbr_coloumn = int(self.ent_col.get())
             if nbr_coloumn <= 0:
                 messagebox.showwarning(
-                    "Input Required", "Please enter a positive number of columns first."
+                    self.MSG_INPUT_REQUIRED_TITLE, "Please enter a positive number of columns first."
                 )
                 return
         except ValueError:
             messagebox.showwarning(
-                "Input Required", "Please enter a valid integer for number of columns first."
+                self.MSG_INPUT_REQUIRED_TITLE, self.MSG_INPUT_INVALID_INT
             )
             return
 
@@ -325,13 +331,13 @@ class CSVApp:
 
             if nbr_coloumn <= 0 or nbr_line <= 0:
                 messagebox.showerror(
-                    "Input Error", "Please enter positive integers for rows and columns."
+                    self.MSG_INPUT_INVALID_TITLE, "Please enter positive integers for rows and columns."
                 )
                 return
             
             if not output_file:
                 messagebox.showerror(
-                    "Input Error", "Please specify an output file path."
+                    self.MSG_INPUT_REQUIRED_TITLE, "Please specify an output file path."
                 )
                 return
 
@@ -353,7 +359,7 @@ class CSVApp:
             messagebox.showinfo("Success", f"CSV file '{output_file}' created successfully!")
         except ValueError:
             messagebox.showerror(
-                "Input Error", "Invalid input. Please enter whole numbers for rows and columns."
+                self.MSG_INPUT_INVALID_TITLE, self.MSG_INPUT_INVALID_INT
             )
         except Exception as e: 
             messagebox.showerror("Error", f"An unexpected error occurred: {e}")
