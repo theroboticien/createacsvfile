@@ -4,7 +4,7 @@ from tkinter import ttk # Import ttk for themed widgets
 from tkinter import filedialog # Import filedialog for file browsing
 import os # Import os for temporary file handling
 import random # Import random for generating unique temporary filenames
-from fillCsvDataFile import createaCSVFile 
+from fillCsvDataFile import create_csv_file # Corrected import statement
 
 class CSVApp:
     # Define constants for repeated strings
@@ -208,7 +208,7 @@ class CSVApp:
         try:
             self._ensure_random_seed() # Ensure a seed exists
             random.seed(self.current_seed) # Apply the seed
-            createaCSVFile(preview_nbr_line, nbr_coloumn, preview_column_types, temp_filename)
+            create_csv_file(preview_nbr_line, nbr_coloumn, preview_column_types, temp_filename) # Corrected function call
 
             with open(temp_filename, 'r') as f:
                 preview_content = f.read()
@@ -355,7 +355,7 @@ class CSVApp:
 
             self._ensure_random_seed() # Ensure a seed exists
             random.seed(self.current_seed) # Apply the seed
-            createaCSVFile(nbr_line, nbr_coloumn, self.column_data_types, output_file) 
+            create_csv_file(nbr_line, nbr_coloumn, self.column_data_types, output_file) # Corrected function call
             messagebox.showinfo("Success", f"CSV file '{output_file}' created successfully!")
         except ValueError:
             messagebox.showerror(
