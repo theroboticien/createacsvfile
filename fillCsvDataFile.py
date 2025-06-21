@@ -1,57 +1,52 @@
-import tkinter
-from tkinter import messagebox
 import random
 import string
 
-# Helper function to generate random lowercase strings
-def random_lowercase(length):
+def random_lowercase(length=6):
+    """Generates a random string of lowercase English letters."""
     return ''.join(random.choices(string.ascii_lowercase, k=length))
 
-# Define the function to create the CSV file
-def createaCSVFile():
+def random_integer(min_val=0, max_val=1000):
+    """Generates a random integer within a specified range."""
+    return random.randint(min_val, max_val)
+
+def random_float(min_val=0.0, max_val=100.0, precision=2):
+    """Generates a random float within a specified range with given precision."""
+    return round(random.uniform(min_val, max_val), precision)
+
+def createaCSVFile(nbr_line, nbr_coloumn, column_types):
     """
-       Function for filling the CSV File
+    Creates a CSV file filled with data based on specified column types.
+
+    Args:
+        nbr_line (int): The number of lines (rows) to generate.
+        nbr_coloumn (int): The number of columns per line.
+        column_types (list): A list of strings specifying the data type for each column
+                              (e.g., ["random_lowercase", "random_integer", ...]).
+
+    Raises:
+        ValueError: If nbr_line or nbr_coloumn are not positive integers,
+                    or if column_types length does not match nbr_coloumn.
+        TypeError: If nbr_line, nbr_coloumn, or column_types are of incorrect types.
     """
-    if len(ent1.get()) == 0:
-        nbr_coloumn = 0
-    else:
-        nbr_coloumn = int(float(ent1.get()))
-
-    if len(ent2.get()) == 0:
-        nbr_line = 0
-    else:
-        nbr_line = int(float(ent2.get()))
-
-    if nbr_line == 0 and nbr_coloumn == 0:
-        messagebox.showinfo("Error", "Please Enter the number of data entry you need")
-    else:
-        # Open a file with the option to rewrite the file if it exists and create the file if it does not exist
-        with open("data.csv", "w") as f:
-            # Fill the file with the information needed
-            for i in range(0, nbr_line):
-                for j in range(0, nbr_coloumn):
-                    # Create a random word
-                    word = random_lowercase(6)
-                    # Write the word to the file
-                    f.write(f"{word}") if j == nbr_coloumn - 1 else f.write(f"{word},")
-                f.write("\n")
-        messagebox.showinfo("Congratulation", "CSV File created")
-
-# Create the tkinter GUI
-root = tkinter.Tk()
-root.title("CSV File Creator")
-
-# Add input fields and labels
-tkinter.Label(root, text="Number of Columns:").grid(row=0, column=0)
-ent1 = tkinter.Entry(root)
-ent1.grid(row=0, column=1)
-
-tkinter.Label(root, text="Number of Rows:").grid(row=1, column=0)
-ent2 = tkinter.Entry(root)
-ent2.grid(row=1, column=1)
-
-# Add a button to trigger the CSV creation
-tkinter.Button(root, text="Create CSV", command=createaCSVFile).grid(row=2, column=0, columnspan=2)
-
-# Run the tkinter main loop
-root.mainloop()
+    if not isinstance(nbr_line, int) or not isinstance(nbr_coloumn, int):
+        raise TypeError("Number of lines and columns must be integers.")
+    if nbr_line <= 0 or nbr_coloumn <= 0:
+        raise ValueError("Number of lines and columns must be positive integers.")
+    if not isinstance(column_types, list) or len(column_types) != nbr_coloumn:
+        raise ValueError(f"Column types list must be a list of length {nbr_coloumn}.")
+    
+    with open("data.csv", "w") as f:
+        for _ in range(nbr_line):
+            row_data = []
+            for i in range(nbr_coloumn):
+                col_type = column_types[i]
+                if col_type == "random_lowercase":
+                    row_data.append(str(random_lowercase()))
+                elif col_type == "random_integer":
+                    row_data.append(str(random_integer()))
+                elif col_type == "random_float":
+                    row_data.append(str(random_float()))
+                else:
+                    # Default to random lowercase if type is unknown
+                    row_data.append(str(random_lowercase())) 
+            f.write(",".join(row_data) + "\n")
