@@ -1,7 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
 from tkinter import ttk # Import ttk for themed widgets
-from fillCsvDataFile import createaCSVFile # This is the correct import
+from tkinter import filedialog # Import filedialog for file browsing
+import os # Import os for temporary file handling
+import random # Import random for generating unique temporary filenames
+from fillCsvDataFile import createaCSVFile 
 
 class CSVApp:
     def __init__(self, master):
@@ -15,36 +18,40 @@ class CSVApp:
         master.title('CSV File Creator')
         
         # Set initial window size and center it, preventing resizing
-        # Adjusted window size to accommodate new button
-        self._center_window(master, 450, 260) 
+        self._center_window(master, 500, 350) 
         master.resizable(False, False) # Prevent window resizing
 
         # Configure styles for ttk widgets for a modern look
         self._configure_styles()
 
         # Initialize an attribute to store column data types
-        # Default to all lowercase strings if not configured
         self.column_data_types = [] 
+        # Initialize an attribute to store the output file path
+        self.output_filepath = tk.StringVar(value="data.csv") # Default filename
+
+        # A seed for reproducibility - initialized to None
+        self.current_seed = None 
+
+        # Store previous column/row counts to detect changes and reset seed
+        self.prev_nbr_coloumn = 0
+        self.prev_nbr_line = 0
 
         # Create and place all GUI widgets
         self._create_widgets()
 
     def _configure_styles(self):
         """
-        G
         Configures the styles for ttk widgets to give a modern look.
         """
         style = ttk.Style()
-        style.theme_use('clam') # 'clam', 'alt', 'default', or 'vista' are common themes
+        style.theme_use('clam') 
 
-        # Configure fonts and padding for labels and entries
         style.configure('TLabel', font=('Arial', 11))
         style.configure('TEntry', font=('Arial', 11))
-        style.configure('TButton', font=('Arial', 11, 'bold'), padding=8) # Add padding to buttons
-        # Add a hover effect for buttons
+        style.configure('TButton', font=('Arial', 11, 'bold'), padding=8) 
         style.map('TButton',
-                  background=[('active', '#e0e0e0')], # Button background on hover
-                  foreground=[('active', 'black')]) # Button text color on hover
+                  background=[('active', '#e0e0e0')], 
+                  foreground=[('active', 'black')]) 
         style.configure('TCombobox', font=('Arial', 10))
 
 
@@ -58,44 +65,176 @@ class CSVApp:
 
         # Frame for input fields to group them logically and apply consistent padding
         input_frame = ttk.Frame(self.master, padding=(pad_x, pad_y, pad_x, pad_y))
-        # Pack the frame with vertical padding and allow it to fill horizontal space
         input_frame.pack(pady=10, padx=20, fill='x', expand=True) 
 
         # Label and Entry for Number of columns
         ttk.Label(input_frame, text='Number of columns:').grid(
-            row=0, column=0, padx=pad_x, pady=pad_y, sticky='w' # Align label to the west (left)
+            row=0, column=0, padx=pad_x, pady=pad_y, sticky='w' 
         )
         self.ent_col = ttk.Entry(input_frame, width=20)
-        self.ent_col.grid(row=0, column=1, padx=pad_x, pady=pad_y, sticky='ew') # Expand entry horizontally
+        self.ent_col.grid(row=0, column=1, padx=pad_x, pady=pad_y, sticky='ew') 
+        # Bind change event to reset seed
+        self.ent_col.bind("<KeyRelease>", self._reset_seed_on_input_change)
 
         # Label and Entry for Number of rows
         ttk.Label(input_frame, text='Number of rows:').grid(
-            row=1, column=0, padx=pad_x, pady=pad_y, sticky='w' # Align label to the west (left)
+            row=1, column=0, padx=pad_x, pady=pad_y, sticky='w' 
         )
         self.ent_line = ttk.Entry(input_frame, width=20)
-        self.ent_line.grid(row=1, column=1, padx=pad_x, pady=pad_y, sticky='ew') # Expand entry horizontally
+        self.ent_line.grid(row=1, column=1, padx=pad_x, pady=pad_y, sticky='ew') 
+        # Bind change event to reset seed
+        self.ent_line.bind("<KeyRelease>", self._reset_seed_on_input_change)
 
-        # Make the second column within the input_frame expand when the window expands
+        # Output File Path
+        ttk.Label(input_frame, text='Output File Path:').grid(
+            row=2, column=0, padx=pad_x, pady=pad_y, sticky='w'
+        )
+        file_path_frame = ttk.Frame(input_frame)
+        file_path_frame.grid(row=2, column=1, padx=pad_x, pady=pad_y, sticky='ew')
+
+        self.ent_file_path = ttk.Entry(file_path_frame, textvariable=self.output_filepath, width=30)
+        self.ent_file_path.pack(side=tk.LEFT, fill='x', expand=True)
+        ttk.Button(file_path_frame, text="Browse", command=self._browse_output_file, width=8).pack(side=tk.RIGHT, padx=(5,0))
+
+        # Make the second column within the input_frame expand
         input_frame.grid_columnconfigure(1, weight=1)
 
         # Frame for buttons to group them and manage their layout
         button_frame = ttk.Frame(self.master)
         button_frame.pack(pady=5, padx=20)
 
-        # Configure Column Data Types button - NEW
+        # Configure Column Data Types button
         ttk.Button(button_frame, text="Configure Column Types", command=self._open_column_config_window).pack(
             side=tk.TOP, pady=5, fill='x', expand=True
         )
+        
+        # Preview Data button
+        ttk.Button(button_frame, text="Preview Data", command=self._preview_data).pack( 
+            side=tk.TOP, pady=5, fill='x', expand=True
+        )
 
-        # Create CSV File button (placed to the left within the button_frame)
+        # Create CSV File button
         ttk.Button(button_frame, text="Create CSV File", command=self._on_create_csv).pack(
-            side=tk.LEFT, padx=(0, 5), pady=5 # Add some padding to the right of this button
+            side=tk.LEFT, padx=(0, 5), pady=5 
         )
 
-        # Exit button (placed to the left, which will put it right of the previous button)
+        # Exit button
         ttk.Button(button_frame, text="Exit", command=self.master.quit).pack(
-            side=tk.LEFT, padx=(5, 0), pady=5 # Add some padding to the left of this button
+            side=tk.LEFT, padx=(5, 0), pady=5 
         )
+
+    def _browse_output_file(self):
+        """
+        Opens a file dialog to let the user select the output CSV file path.
+        """
+        initial_filename = self.output_filepath.get()
+        if "/" in initial_filename:
+            initial_dir = "/".join(initial_filename.split("/")[:-1])
+            initial_file = initial_filename.split("/")[-1]
+        else:
+            initial_dir = "" 
+            initial_file = initial_filename
+            
+        file_path = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv"), ("All files", "*.*")],
+            initialfile=initial_file,
+            initialdir=initial_dir
+        )
+        if file_path:
+            self.output_filepath.set(file_path)
+
+    def _reset_seed_on_input_change(self, event=None):
+        """
+        Resets the current_seed to None if the number of columns or rows changes.
+        This ensures that new random data is generated if input parameters change.
+        """
+        try:
+            current_col = int(self.ent_col.get())
+            current_row = int(self.ent_line.get())
+        except ValueError:
+            # If input is invalid, treat as a change to trigger new seed
+            current_col = -1 
+            current_row = -1
+
+        if current_col != self.prev_nbr_coloumn or current_row != self.prev_nbr_line:
+            self.current_seed = None # Reset the seed
+            self.prev_nbr_coloumn = current_col
+            self.prev_nbr_line = current_row
+
+    def _ensure_random_seed(self):
+        """
+        Ensures a random seed exists. If not, it generates a new one.
+        This seed will then be used for both preview and actual file generation
+        until inputs change or it's explicitly reset.
+        """
+        if self.current_seed is None:
+            self.current_seed = random.randint(0, 1000000)
+
+    def _preview_data(self):
+        """
+        Generates a small sample of the CSV data (based on 'Number of rows' input)
+        and displays it in a new Toplevel window.
+        Uses a temporary file to avoid overwriting the main output.
+        """
+        try:
+            nbr_coloumn = int(self.ent_col.get())
+            preview_nbr_line = int(self.ent_line.get()) 
+
+            if nbr_coloumn <= 0 or preview_nbr_line <= 0:
+                messagebox.showwarning(
+                    "Input Required", "Please enter positive integers for rows and columns to preview."
+                )
+                return
+        except ValueError:
+            messagebox.showwarning(
+                "Input Required", "Please enter valid integers for rows and columns to preview."
+            )
+            return
+
+        if not self.column_data_types or len(self.column_data_types) != nbr_coloumn:
+            preview_column_types = ["random_lowercase"] * nbr_coloumn
+        else:
+            preview_column_types = self.column_data_types
+
+        temp_filename = f"temp_preview_{os.getpid()}_{random.randint(0, 10000)}.csv"
+
+        try:
+            self._ensure_random_seed() # Ensure a seed exists
+            random.seed(self.current_seed) # Apply the seed
+            createaCSVFile(preview_nbr_line, nbr_coloumn, preview_column_types, temp_filename)
+
+            with open(temp_filename, 'r') as f:
+                preview_content = f.read()
+
+            preview_window = tk.Toplevel(self.master)
+            preview_window.title("CSV Data Preview (Seed: " + str(self.current_seed) + ")") 
+            self._center_window(preview_window, 600, 400) 
+            preview_window.transient(self.master)
+            preview_window.grab_set()
+
+            text_area = tk.Text(preview_window, wrap='none', font=('Courier New', 10))
+            text_area.insert(tk.END, preview_content)
+            text_area.config(state='disabled') 
+
+            h_scroll = ttk.Scrollbar(preview_window, orient='horizontal', command=text_area.xview)
+            v_scroll = ttk.Scrollbar(preview_window, orient='vertical', command=text_area.yview)
+            text_area.configure(xscrollcommand=h_scroll.set, yscrollcommand=v_scroll.set)
+
+            h_scroll.pack(side='bottom', fill='x')
+            v_scroll.pack(side='right', fill='y')
+            text_area.pack(side='left', fill='both', expand=True)
+
+            close_button_frame = ttk.Frame(preview_window, padding=(10, 5))
+            close_button_frame.pack(fill='x', pady=5)
+            ttk.Button(close_button_frame, text="Close Preview", command=preview_window.destroy).pack(pady=5)
+
+        except Exception as e:
+            messagebox.showerror("Preview Error", f"Failed to generate preview: {e}")
+        finally:
+            if os.path.exists(temp_filename):
+                os.remove(temp_filename)
+
 
     def _open_column_config_window(self):
         """
@@ -114,18 +253,18 @@ class CSVApp:
             )
             return
 
+        # Reset seed if column count changed before opening config
+        self._reset_seed_on_input_change() 
+
         config_window = tk.Toplevel(self.master)
         config_window.title(f"Configure {nbr_coloumn} Columns")
-        # Adjusted window height for better button placement
         self._center_window(config_window, 400, min(100 + nbr_coloumn * 40, 600)) 
-        config_window.transient(self.master) # Make it appear on top of the main window
-        config_window.grab_set() # Make it modal
+        config_window.transient(self.master) 
+        config_window.grab_set() 
 
-        # List to hold references to Combobox widgets
         self.config_comboboxes = []
-        data_type_options = ["random_lowercase", "random_integer", "random_float"]
+        data_type_options = ["random_lowercase", "random_integer", "random_float", "random_boolean", "random_date", "random_name"] 
 
-        # If column_data_types is empty or doesn't match current nbr_coloumn, re-initialize
         if not self.column_data_types or len(self.column_data_types) != nbr_coloumn:
             self.column_data_types = ["random_lowercase"] * nbr_coloumn
 
@@ -135,34 +274,32 @@ class CSVApp:
 
             ttk.Label(frame_row, text=f"Column {i+1} Type:").pack(side=tk.LEFT, padx=(0,10))
             
-            # Create a Combobox for each column
             col_combobox = ttk.Combobox(frame_row, values=data_type_options, state="readonly", width=20)
             
-            # Set the current value from self.column_data_types if available
-            col_combobox.set(self.column_data_types[i])
+            if self.column_data_types[i] not in data_type_options:
+                col_combobox.set("random_lowercase") 
+            else:
+                col_combobox.set(self.column_data_types[i])
             
             col_combobox.pack(side=tk.LEFT, expand=True, fill='x')
-            self.config_comboboxes.append(col_combobox) # Store reference
+            self.config_comboboxes.append(col_combobox) 
 
         # Save and Cancel buttons for the config window
-        # Using a new frame for buttons to control their layout better
         button_frame_config = ttk.Frame(config_window, padding=(10, 10))
-        button_frame_config.pack(pady=10) # Add more vertical padding here
+        button_frame_config.pack(pady=10) 
 
-        # Use grid for buttons to center them easily
         ttk.Button(button_frame_config, text="Save Settings", command=lambda: self._save_column_config(config_window)).grid(
             row=0, column=0, padx=5, pady=5
         )
         ttk.Button(button_frame_config, text="Cancel", command=config_window.destroy).grid(
             row=0, column=1, padx=5, pady=5
         )
-        # Center the grid within its frame
         button_frame_config.grid_columnconfigure(0, weight=1)
         button_frame_config.grid_columnconfigure(1, weight=1)
         button_frame_config.grid_rowconfigure(0, weight=1)
 
 
-        self.master.wait_window(config_window) # Wait for the config window to close
+        self.master.wait_window(config_window) 
 
 
     def _save_column_config(self, config_window):
@@ -171,6 +308,7 @@ class CSVApp:
         """
         self.column_data_types = [cb.get() for cb in self.config_comboboxes]
         messagebox.showinfo("Configuration Saved", "Column data types have been saved.")
+        self.current_seed = None # Reset seed when column types are changed/saved
         config_window.destroy()
 
 
@@ -181,21 +319,23 @@ class CSVApp:
         Includes robust error handling for user feedback.
         """
         try:
-            # Attempt to convert input to integers
             nbr_coloumn = int(self.ent_col.get())
             nbr_line = int(self.ent_line.get())
+            output_file = self.output_filepath.get() 
 
-            # Validate if numbers are positive
             if nbr_coloumn <= 0 or nbr_line <= 0:
                 messagebox.showerror(
                     "Input Error", "Please enter positive integers for rows and columns."
                 )
                 return
             
-            # Ensure column types are configured and match the number of columns
+            if not output_file:
+                messagebox.showerror(
+                    "Input Error", "Please specify an output file path."
+                )
+                return
+
             if not self.column_data_types or len(self.column_data_types) != nbr_coloumn:
-                # If not configured, default all columns to random_lowercase
-                # or prompt the user to configure
                 response = messagebox.askyesno(
                     "Configuration Missing", 
                     "Column data types are not configured or do not match the number of columns. "
@@ -205,18 +345,17 @@ class CSVApp:
                     self.column_data_types = ["random_lowercase"] * nbr_coloumn
                 else:
                     messagebox.showinfo("Action Cancelled", "Please configure column types or adjust column count.")
-                    return # Stop creation process
+                    return 
 
-            # Call the external function to create the CSV file, passing column_types
-            createaCSVFile(nbr_line, nbr_coloumn, self.column_data_types) 
-            messagebox.showinfo("Success", "CSV file 'data.csv' created successfully!")
+            self._ensure_random_seed() # Ensure a seed exists
+            random.seed(self.current_seed) # Apply the seed
+            createaCSVFile(nbr_line, nbr_coloumn, self.column_data_types, output_file) 
+            messagebox.showinfo("Success", f"CSV file '{output_file}' created successfully!")
         except ValueError:
-            # Handle cases where input is not a valid integer
             messagebox.showerror(
                 "Input Error", "Invalid input. Please enter whole numbers for rows and columns."
             )
         except Exception as e: 
-            # Catch any other unexpected errors during the file creation process
             messagebox.showerror("Error", f"An unexpected error occurred: {e}")
 
     def _center_window(self, win, width, height):
@@ -235,9 +374,6 @@ class CSVApp:
         win.geometry(f'{width}x{height}+{x}+{y}')
 
 if __name__ == "__main__":
-    # Create the root Tkinter window
     root = tk.Tk()
-    # Instantiate the CSVApp class
     app = CSVApp(root)
-    # Start the Tkinter event loop
     root.mainloop()
